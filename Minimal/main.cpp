@@ -613,45 +613,6 @@ public:
 		// Use the shader of programID
 		glUseProgram(shaderProgram);
 
-		// light
-		glm::vec3 pointLightPosition;
-		pointLightPosition = glm::vec3(10.0f, 10.0f, 5.0f);
-		glUniform3f(glGetUniformLocation(shaderProgram, "pointLight[0].position"), pointLightPosition.x, pointLightPosition.y, pointLightPosition.z);
-		glUniform3f(glGetUniformLocation(shaderProgram, "pointLight[0].ambient"), 1.0f, 1.0f, 1.0f);
-		glUniform3f(glGetUniformLocation(shaderProgram, "pointLight[0].diffuse"), 1.0f, 1.0f, 1.0f);
-		glUniform3f(glGetUniformLocation(shaderProgram, "pointLight[0].specular"), 1.0f, 1.0f, 1.0f);
-		glUniform1f(glGetUniformLocation(shaderProgram, "pointLight[0].constant"), 1.0f);
-		glUniform1f(glGetUniformLocation(shaderProgram, "pointLight[0].linear"), 0.09f); // 0.09
-		glUniform1f(glGetUniformLocation(shaderProgram, "pointLight[0].quadratic"), 0.032f); // 0.032
-
-
-		pointLightPosition = glm::vec3(10.0f, 10.0f, -20.0f);
-		glUniform3f(glGetUniformLocation(shaderProgram, "pointLight[1].position"), pointLightPosition.x, pointLightPosition.y, pointLightPosition.z);
-		glUniform3f(glGetUniformLocation(shaderProgram, "pointLight[1].ambient"), 1.0f, 1.0f, 1.0f);
-		glUniform3f(glGetUniformLocation(shaderProgram, "pointLight[1].diffuse"), 1.0f, 1.0f, 1.0f);
-		glUniform3f(glGetUniformLocation(shaderProgram, "pointLight[1].specular"), 1.0f, 1.0f, 1.0f);
-		glUniform1f(glGetUniformLocation(shaderProgram, "pointLight[1].constant"), 1.0f);
-		glUniform1f(glGetUniformLocation(shaderProgram, "pointLight[1].linear"), 0.09f); // 0.09
-		glUniform1f(glGetUniformLocation(shaderProgram, "pointLight[1].quadratic"), 0.032f); // 0.032
-
-		pointLightPosition = glm::vec3(-10.0f, 10.0f, 5.0f);
-		glUniform3f(glGetUniformLocation(shaderProgram, "pointLight[2].position"), pointLightPosition.x, pointLightPosition.y, pointLightPosition.z);
-		glUniform3f(glGetUniformLocation(shaderProgram, "pointLight[2].ambient"), 1.0f, 1.0f, 1.0f);
-		glUniform3f(glGetUniformLocation(shaderProgram, "pointLight[2].diffuse"), 1.0f, 1.0f, 1.0f);
-		glUniform3f(glGetUniformLocation(shaderProgram, "pointLight[2].specular"), 1.0f, 1.0f, 1.0f);
-		glUniform1f(glGetUniformLocation(shaderProgram, "pointLight[2].constant"), 1.0f);
-		glUniform1f(glGetUniformLocation(shaderProgram, "pointLight[2].linear"), 0.09f); // 0.09
-		glUniform1f(glGetUniformLocation(shaderProgram, "pointLight[2].quadratic"), 0.032f); // 0.032
-
-		pointLightPosition = glm::vec3(-10.0f, 10.0f, -20.0f);
-		glUniform3f(glGetUniformLocation(shaderProgram, "pointLight[3].position"), pointLightPosition.x, pointLightPosition.y, pointLightPosition.z);
-		glUniform3f(glGetUniformLocation(shaderProgram, "pointLight[3].ambient"), 1.0f, 1.0f, 1.0f);
-		glUniform3f(glGetUniformLocation(shaderProgram, "pointLight[3].diffuse"), 1.0f, 1.0f, 1.0f);
-		glUniform3f(glGetUniformLocation(shaderProgram, "pointLight[3].specular"), 1.0f, 1.0f, 1.0f);
-		glUniform1f(glGetUniformLocation(shaderProgram, "pointLight[3].constant"), 1.0f);
-		glUniform1f(glGetUniformLocation(shaderProgram, "pointLight[3].linear"), 0.09f); // 0.09
-		glUniform1f(glGetUniformLocation(shaderProgram, "pointLight[3].quadratic"), 0.032f); // 0.032
-
 		cube->draw(shaderProgram, projection, modelview);
 	}
 
