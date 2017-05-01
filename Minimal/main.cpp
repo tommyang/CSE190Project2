@@ -17,7 +17,7 @@ limitations under the License.
 
 ************************************************************************************/
 
-
+#define _CRT_SECURE_NO_WARNINGS
 #include <iostream>
 #include <memory>
 #include <exception>
@@ -583,182 +583,115 @@ protected:
 //
 
 
-//////////////////////////////////////////////////////////////////////
-//
-// OGLplus is a set of wrapper classes for giving OpenGL a more object
-// oriented interface
-//
-#define OGLPLUS_USE_GLCOREARB_H 0
-#define OGLPLUS_USE_GLEW 1
-#define OGLPLUS_USE_BOOST_CONFIG 0
-#define OGLPLUS_NO_SITE_CONFIG 1
-#define OGLPLUS_LOW_PROFILE 1
+#include <time.h>
+#include "Shader.h"
+#include "Cube.h"
+struct SimScene {
+	Cube * cube;
+	GLint shaderProgram;
+	time_t last_co2_time;
 
-#pragma warning( disable : 4068 4244 4267 4065)
-#include <oglplus/config/basic.hpp>
-#include <oglplus/config/gl.hpp>
-#include <oglplus/all.hpp>
-#include <oglplus/interop/glm.hpp>
-#include <oglplus/bound/texture.hpp>
-#include <oglplus/bound/framebuffer.hpp>
-#include <oglplus/bound/renderbuffer.hpp>
-#include <oglplus/bound/buffer.hpp>
-#include <oglplus/shapes/cube.hpp>
-#include <oglplus/shapes/wrapper.hpp>
-#pragma warning( default : 4068 4244 4267 4065)
-
-
-
-namespace Attribute {
-	enum {
-		Position = 0,
-		TexCoord0 = 1,
-		Normal = 2,
-		Color = 3,
-		TexCoord1 = 4,
-		InstanceTransform = 5,
-	};
-}
-
-static const char * VERTEX_SHADER = R"SHADER(
-#version 410 core
-
-uniform mat4 ProjectionMatrix = mat4(1);
-uniform mat4 CameraMatrix = mat4(1);
-
-layout(location = 0) in vec4 Position;
-layout(location = 2) in vec3 Normal;
-layout(location = 5) in mat4 InstanceTransform;
-
-out vec3 vertNormal;
-
-void main(void) {
-   mat4 ViewXfm = CameraMatrix * InstanceTransform;
-   //mat4 ViewXfm = CameraMatrix;
-   vertNormal = Normal;
-   gl_Position = ProjectionMatrix * ViewXfm * Position;
-}
-)SHADER";
-
-static const char * FRAGMENT_SHADER = R"SHADER(
-#version 410 core
-
-in vec3 vertNormal;
-out vec4 fragColor;
-
-void main(void) {
-    vec3 color = vertNormal;
-    if (!all(equal(color, abs(color)))) {
-        color = vec3(1.0) - abs(color);
-    }
-    fragColor = vec4(color, 1.0);
-}
-)SHADER";
-
-// a class for encapsulating building and rendering an RGB cube
-struct ColorCubeScene {
-
-	// Program
-	oglplus::shapes::ShapeWrapper cube;
-	oglplus::Program prog;
-	oglplus::VertexArray vao;
-	GLuint instanceCount;
-	oglplus::Buffer instances;
-
-	// VBOs for the cube's vertices and normals
-
-	const unsigned int GRID_SIZE{ 5 };
+#define VERTEX_SHADER2_PATH "C:/Users/tiyang/Desktop/CSE190Project2/Minimal/shader.vert"
+#define FRAGMENT_SHADER2_PATH "C:/Users/tiyang/Desktop/CSE190Project2/Minimal/shader.frag"
 
 public:
-	ColorCubeScene() : cube({ "Position", "Normal" }, oglplus::shapes::Cube()) {
-		using namespace oglplus;
-		try {
-			// attach the shaders to the program
-			prog.AttachShader(
-				FragmentShader()
-				.Source(GLSLSource(String(FRAGMENT_SHADER)))
-				.Compile()
-			);
-			prog.AttachShader(
-				VertexShader()
-				.Source(GLSLSource(String(VERTEX_SHADER)))
-				.Compile()
-			);
-			prog.Link();
-		}
-		catch (ProgramBuildError & err) {
-			FAIL((const char*)err.what());
-		}
+	static glm::mat4 P; // P for projection
+	static glm::mat4 V; // V for view
 
-		// link and use it
-		prog.Use();
+	SimScene() {
+		shaderProgram = LoadShaders(VERTEX_SHADER2_PATH, FRAGMENT_SHADER2_PATH);
 
-		vao = cube.VAOForProgram(prog);
-		vao.Bind();
-		// Create a cube of cubes
-		{
-			std::vector<mat4> instance_positions;
-			for (unsigned int z = 0; z < GRID_SIZE; ++z) {
-				for (unsigned int y = 0; y < GRID_SIZE; ++y) {
-					for (unsigned int x = 0; x < GRID_SIZE; ++x) {
-						int xpos = (x - (GRID_SIZE / 2)) * 2;
-						int ypos = (y - (GRID_SIZE / 2)) * 2;
-						int zpos = (z - (GRID_SIZE / 2)) * 2;
-						vec3 relativePosition = vec3(xpos, ypos, zpos);
-						if (relativePosition == vec3(0)) {
-							continue;
-						}
-						instance_positions.push_back(glm::translate(glm::mat4(1.0f), relativePosition));
-					}
-				}
-			}
+		cube = new Cube();
+		cube->toWorld = glm::translate(glm::mat4(1.0f), glm::vec3(0.0f, 0.0f, -15.0f));
+	}
 
-			Context::Bound(Buffer::Target::Array, instances).Data(instance_positions);
-			instanceCount = (GLuint)instance_positions.size();
-			int stride = sizeof(mat4);
-			for (int i = 0; i < 4; ++i) {
-				VertexArrayAttrib instance_attr(prog, Attribute::InstanceTransform + i);
-				size_t offset = sizeof(vec4) * i;
-				instance_attr.Pointer(4, DataType::Float, false, stride, (void*)offset);
-				instance_attr.Divisor(1);
-				instance_attr.Enable();
-			}
-		}
+	void update() {
+		// cube->update();
 	}
 
 	void render(const mat4 & projection, const mat4 & modelview) {
-		using namespace oglplus;
-		prog.Use();
-		Uniform<mat4>(prog, "ProjectionMatrix").Set(projection);
-		Uniform<mat4>(prog, "CameraMatrix").Set(modelview);
-		vao.Bind();
-		cube.Draw(instanceCount);
+		// Use the shader of programID
+		glUseProgram(shaderProgram);
+
+		// light
+		glm::vec3 pointLightPosition;
+		pointLightPosition = glm::vec3(10.0f, 10.0f, 5.0f);
+		glUniform3f(glGetUniformLocation(shaderProgram, "pointLight[0].position"), pointLightPosition.x, pointLightPosition.y, pointLightPosition.z);
+		glUniform3f(glGetUniformLocation(shaderProgram, "pointLight[0].ambient"), 1.0f, 1.0f, 1.0f);
+		glUniform3f(glGetUniformLocation(shaderProgram, "pointLight[0].diffuse"), 1.0f, 1.0f, 1.0f);
+		glUniform3f(glGetUniformLocation(shaderProgram, "pointLight[0].specular"), 1.0f, 1.0f, 1.0f);
+		glUniform1f(glGetUniformLocation(shaderProgram, "pointLight[0].constant"), 1.0f);
+		glUniform1f(glGetUniformLocation(shaderProgram, "pointLight[0].linear"), 0.09f); // 0.09
+		glUniform1f(glGetUniformLocation(shaderProgram, "pointLight[0].quadratic"), 0.032f); // 0.032
+
+
+		pointLightPosition = glm::vec3(10.0f, 10.0f, -20.0f);
+		glUniform3f(glGetUniformLocation(shaderProgram, "pointLight[1].position"), pointLightPosition.x, pointLightPosition.y, pointLightPosition.z);
+		glUniform3f(glGetUniformLocation(shaderProgram, "pointLight[1].ambient"), 1.0f, 1.0f, 1.0f);
+		glUniform3f(glGetUniformLocation(shaderProgram, "pointLight[1].diffuse"), 1.0f, 1.0f, 1.0f);
+		glUniform3f(glGetUniformLocation(shaderProgram, "pointLight[1].specular"), 1.0f, 1.0f, 1.0f);
+		glUniform1f(glGetUniformLocation(shaderProgram, "pointLight[1].constant"), 1.0f);
+		glUniform1f(glGetUniformLocation(shaderProgram, "pointLight[1].linear"), 0.09f); // 0.09
+		glUniform1f(glGetUniformLocation(shaderProgram, "pointLight[1].quadratic"), 0.032f); // 0.032
+
+		pointLightPosition = glm::vec3(-10.0f, 10.0f, 5.0f);
+		glUniform3f(glGetUniformLocation(shaderProgram, "pointLight[2].position"), pointLightPosition.x, pointLightPosition.y, pointLightPosition.z);
+		glUniform3f(glGetUniformLocation(shaderProgram, "pointLight[2].ambient"), 1.0f, 1.0f, 1.0f);
+		glUniform3f(glGetUniformLocation(shaderProgram, "pointLight[2].diffuse"), 1.0f, 1.0f, 1.0f);
+		glUniform3f(glGetUniformLocation(shaderProgram, "pointLight[2].specular"), 1.0f, 1.0f, 1.0f);
+		glUniform1f(glGetUniformLocation(shaderProgram, "pointLight[2].constant"), 1.0f);
+		glUniform1f(glGetUniformLocation(shaderProgram, "pointLight[2].linear"), 0.09f); // 0.09
+		glUniform1f(glGetUniformLocation(shaderProgram, "pointLight[2].quadratic"), 0.032f); // 0.032
+
+		pointLightPosition = glm::vec3(-10.0f, 10.0f, -20.0f);
+		glUniform3f(glGetUniformLocation(shaderProgram, "pointLight[3].position"), pointLightPosition.x, pointLightPosition.y, pointLightPosition.z);
+		glUniform3f(glGetUniformLocation(shaderProgram, "pointLight[3].ambient"), 1.0f, 1.0f, 1.0f);
+		glUniform3f(glGetUniformLocation(shaderProgram, "pointLight[3].diffuse"), 1.0f, 1.0f, 1.0f);
+		glUniform3f(glGetUniformLocation(shaderProgram, "pointLight[3].specular"), 1.0f, 1.0f, 1.0f);
+		glUniform1f(glGetUniformLocation(shaderProgram, "pointLight[3].constant"), 1.0f);
+		glUniform1f(glGetUniformLocation(shaderProgram, "pointLight[3].linear"), 0.09f); // 0.09
+		glUniform1f(glGetUniformLocation(shaderProgram, "pointLight[3].quadratic"), 0.032f); // 0.032
+
+		cube->draw(shaderProgram, projection, modelview);
 	}
+
+private:
+
 };
 
-
-// An example application that renders a simple cube
-class ExampleApp : public RiftApp {
-	std::shared_ptr<ColorCubeScene> cubeScene;
+class SimApp : public RiftApp {
+	std::shared_ptr<SimScene> simScene;
 
 public:
-	ExampleApp() { }
-
+	SimApp() {}
 protected:
+
 	void initGl() override {
 		RiftApp::initGl();
-		glClearColor(0.2f, 0.2f, 0.2f, 0.0f);
+		// Enable depth buffering
 		glEnable(GL_DEPTH_TEST);
+		// Related to shaders and z value comparisons for the depth buffer
+		glDepthFunc(GL_LEQUAL);
+		// Set polygon drawing mode to fill front and back of each polygon
+		// You can also use the paramter of GL_LINE instead of GL_FILL to see wireframes
+		glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
+		// Disable backface culling to render both sides of polygons
+		glDisable(GL_CULL_FACE);
+		// Set clear color
+		glClearColor(0.0f, 0.0f, 128.0f / 255.0f, 1.0f);
 		ovr_RecenterTrackingOrigin(_session);
-		cubeScene = std::shared_ptr<ColorCubeScene>(new ColorCubeScene());
+		simScene = std::shared_ptr<SimScene>(new SimScene());
 	}
 
 	void shutdownGl() override {
-		cubeScene.reset();
+	}
+
+	void update() override {
+		simScene->update();
 	}
 
 	void renderScene(const glm::mat4 & projection, const glm::mat4 & headPose) override {
-		cubeScene->render(projection, glm::inverse(headPose));
+		simScene->render(projection, glm::inverse(headPose));
 	}
 };
 
@@ -769,7 +702,11 @@ int __stdcall WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdL
 		if (!OVR_SUCCESS(ovr_Initialize(nullptr))) {
 			FAIL("Failed to initialize the Oculus SDK");
 		}
-		result = ExampleApp().run();
+		AllocConsole();
+		freopen("conin$", "r", stdin);
+		freopen("conout$", "w", stdout);
+		freopen("conout$", "w", stderr);
+		result = SimApp().run();
 	}
 	catch (std::exception & error) {
 		OutputDebugStringA(error.what());
