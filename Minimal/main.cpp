@@ -586,13 +586,14 @@ protected:
 #include <time.h>
 #include "Shader.h"
 #include "Cube.h"
+#include "Skybox.h"
 struct SimScene {
 	Cube * cube;
+	Skybox * skybox;
 	GLint shaderProgram;
-	time_t last_co2_time;
 
-#define VERTEX_SHADER2_PATH "C:/Users/tiyang/Desktop/CSE190Project2/Minimal/shader.vert"
-#define FRAGMENT_SHADER2_PATH "C:/Users/tiyang/Desktop/CSE190Project2/Minimal/shader.frag"
+#define VERTEX_SHADER2_PATH "C:/Users/degu/Desktop/CSE190Project2/Minimal/shader.vert"
+#define FRAGMENT_SHADER2_PATH "C:/Users/degu/Desktop/CSE190Project2/Minimal/shader.frag"
 
 public:
 	static glm::mat4 P; // P for projection
@@ -601,8 +602,9 @@ public:
 	SimScene() {
 		shaderProgram = LoadShaders(VERTEX_SHADER2_PATH, FRAGMENT_SHADER2_PATH);
 
+		skybox = new Skybox();
 		cube = new Cube();
-		cube->toWorld = glm::translate(glm::mat4(1.0f), glm::vec3(0.0f, 0.0f, -15.0f));
+		cube->toWorld = glm::translate(glm::mat4(1.0f), glm::vec3(0.0f, 0.0f, -5.0f));
 	}
 
 	void update() {
@@ -613,6 +615,7 @@ public:
 		// Use the shader of programID
 		glUseProgram(shaderProgram);
 
+		skybox->draw(shaderProgram, projection, modelview);
 		cube->draw(shaderProgram, projection, modelview);
 	}
 
