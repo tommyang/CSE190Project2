@@ -75,8 +75,8 @@ void Cube::draw(GLuint shaderProgram, glm::mat4 P, glm::mat4 V)
 	uView = glGetUniformLocation(shaderProgram, "view");
 	// Now send these values to the shader program
 	glUniformMatrix4fv(uProjection, 1, GL_FALSE, &P[0][0]);
-	glUniformMatrix4fv(uModel, 1, GL_FALSE, &toWorld[0][0]);
-	glUniformMatrix4fv(uView, 1, GL_FALSE, &V[0][0]);
+	glUniformMatrix4fv(uModel, 1, GL_FALSE, &V[0][0]);
+	glUniformMatrix4fv(uView, 1, GL_FALSE, &toWorld[0][0]);
 
 	glActiveTexture(GL_TEXTURE0);
 	glBindTexture(GL_TEXTURE_2D, texture_ID);

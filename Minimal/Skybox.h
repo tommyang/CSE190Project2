@@ -40,7 +40,7 @@ public:
 
 	// These variables are needed for the shader program
 	GLuint VBO, VAO, uv_ID;
-	GLuint uProjection, uModel, uView, texture_ID_left, texture_ID_right, curTextureID;
+	GLuint uProjection, uModel, uView, texture_ID_left, texture_ID_right, texture_ID_self, curTextureID;
 
 	/*
 	GLfloat vertices[8][3] = {
