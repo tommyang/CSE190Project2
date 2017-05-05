@@ -31,7 +31,7 @@ public:
 	unsigned char* loadPPM(const char* filename, int& width, int& height);
 
 	// These variables are needed for the shader program
-	GLuint VBO, VAO, EBO, uv_ID;
+	GLuint VBO, VAO, uv_ID;
 	GLuint uProjection, uModel, uView, texture_ID;
 
 	const GLfloat vertices[108] = {

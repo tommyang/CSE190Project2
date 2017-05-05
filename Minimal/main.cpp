@@ -590,19 +590,24 @@ protected:
 struct SimScene {
 	Cube * cube;
 	Skybox * skybox;
-	GLint shaderProgram;
+	GLint cubeShaderProgram, skyboxShaderProgram;
 
-#define VERTEX_SHADER2_PATH "C:/Users/degu/Desktop/CSE190Project2/Minimal/shader.vert"
-#define FRAGMENT_SHADER2_PATH "C:/Users/degu/Desktop/CSE190Project2/Minimal/shader.frag"
+#define CUBE_VERTEX_SHADER_PATH "C:/Users/degu/Desktop/CSE190Project2/Minimal/shader.vert"
+#define CUBE_FRAGMENT_SHADER_PATH "C:/Users/degu/Desktop/CSE190Project2/Minimal/shader.frag"
+
+#define SKYBOX_VERTEX_SHADER_PATH "C:/Users/degu/Desktop/CSE190Project2/Minimal/skybox.vert"
+#define SKYBOX_FRAGMENT_SHADER_PATH "C:/Users/degu/Desktop/CSE190Project2/Minimal/skybox.frag"
 
 public:
 	static glm::mat4 P; // P for projection
 	static glm::mat4 V; // V for view
 
 	SimScene() {
-		shaderProgram = LoadShaders(VERTEX_SHADER2_PATH, FRAGMENT_SHADER2_PATH);
+		cubeShaderProgram = LoadShaders(CUBE_VERTEX_SHADER_PATH, CUBE_FRAGMENT_SHADER_PATH);
+		skyboxShaderProgram = LoadShaders(SKYBOX_VERTEX_SHADER_PATH, SKYBOX_FRAGMENT_SHADER_PATH);
 
 		skybox = new Skybox();
+		skybox->toWorld = glm::mat4(1.0f);
 		cube = new Cube();
 		cube->toWorld = glm::translate(glm::mat4(1.0f), glm::vec3(0.0f, 0.0f, -5.0f));
 	}
@@ -613,10 +618,10 @@ public:
 
 	void render(const mat4 & projection, const mat4 & modelview) {
 		// Use the shader of programID
-		glUseProgram(shaderProgram);
-
-		skybox->draw(shaderProgram, projection, modelview);
-		cube->draw(shaderProgram, projection, modelview);
+		//glUseProgram(cubeShaderProgram);
+		//cube->draw(cubeShaderProgram, projection, modelview);
+		glUseProgram(skyboxShaderProgram);
+		skybox->draw(skyboxShaderProgram, projection, modelview);
 	}
 
 private:

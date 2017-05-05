@@ -83,63 +83,6 @@ void Skybox::initialize() {
 	this->loadCubemap();
 }
 
-// Load textures for skybox
-GLuint Skybox::loadCubemap() {
-
-	glGenTextures(1, &textureID);
-
-	int width, height;
-	unsigned char* image;
-
-	glBindTexture(GL_TEXTURE_CUBE_MAP, textureID);
-
-	// Make sure no bytes are padded:
-	glPixelStorei(GL_UNPACK_ALIGNMENT, 1);
-
-	// Select GL_MODULATE to mix texture with polygon color for shading:
-	glTexEnvf(GL_TEXTURE_ENV, GL_TEXTURE_ENV_MODE, GL_MODULATE);
-
-	// Load front
-	image = loadPPM("C:/Users/degu/Desktop/CSE190Project2/Minimal/left-ppm/pz.ppm", width, height);
-	glTexImage2D(GL_TEXTURE_CUBE_MAP_NEGATIVE_Z, 0, GL_RGB, width, height, 0, GL_RGB, GL_UNSIGNED_BYTE, image);
-	//glTexImage2D(GL_TEXTURE_CUBE_MAP_POSITIVE_Z, 0, GL_RGB, width, height, 0, GL_RGB, GL_UNSIGNED_BYTE, image);
-
-	// Load back
-	image = loadPPM("C:/Users/degu/Desktop/CSE190Project2/Minimal/left-ppm/nz.ppm", width, height);
-	glTexImage2D(GL_TEXTURE_CUBE_MAP_POSITIVE_Z, 0, GL_RGB, width, height, 0, GL_RGB, GL_UNSIGNED_BYTE, image);
-	//glTexImage2D(GL_TEXTURE_CUBE_MAP_NEGATIVE_Z, 0, GL_RGB, width, height, 0, GL_RGB, GL_UNSIGNED_BYTE, image);
-
-	// Load bottom
-	image = loadPPM("C:/Users/degu/Desktop/CSE190Project2/Minimal/left-ppm/ny.ppm", width, height);
-	glTexImage2D(GL_TEXTURE_CUBE_MAP_NEGATIVE_Y, 0, GL_RGB, width, height, 0, GL_RGB, GL_UNSIGNED_BYTE, image);
-
-	// Load left
-	image = loadPPM("C:/Users/degu/Desktop/CSE190Project2/Minimal/left-ppm/nx.ppm", width, height);
-	glTexImage2D(GL_TEXTURE_CUBE_MAP_NEGATIVE_X, 0, GL_RGB, width, height, 0, GL_RGB, GL_UNSIGNED_BYTE, image);
-	//glTexImage2D(GL_TEXTURE_CUBE_MAP_POSITIVE_X, 0, GL_RGB, width, height, 0, GL_RGB, GL_UNSIGNED_BYTE, image);
-
-	// Load right
-	image = loadPPM("C:/Users/degu/Desktop/CSE190Project2/Minimal/left-ppm/px.ppm", width, height);
-	glTexImage2D(GL_TEXTURE_CUBE_MAP_POSITIVE_X, 0, GL_RGB, width, height, 0, GL_RGB, GL_UNSIGNED_BYTE, image);
-	//glTexImage2D(GL_TEXTURE_CUBE_MAP_NEGATIVE_X, 0, GL_RGB, width, height, 0, GL_RGB, GL_UNSIGNED_BYTE, image);
-
-	// Load top
-	image = loadPPM("C:/Users/degu/Desktop/CSE190Project2/Minimal/left-ppm/py.ppm", width, height);
-	glTexImage2D(GL_TEXTURE_CUBE_MAP_POSITIVE_Y, 0, GL_RGB, width, height, 0, GL_RGB, GL_UNSIGNED_BYTE, image);
-
-	// Sets texture parameters
-	glTexParameteri(GL_TEXTURE_CUBE_MAP, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
-	glTexParameteri(GL_TEXTURE_CUBE_MAP, GL_TEXTURE_MIN_FILTER, GL_LINEAR_MIPMAP_LINEAR);
-	glTexParameteri(GL_TEXTURE_CUBE_MAP, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
-	glTexParameteri(GL_TEXTURE_CUBE_MAP, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
-	glTexParameteri(GL_TEXTURE_CUBE_MAP, GL_TEXTURE_WRAP_R, GL_CLAMP_TO_EDGE);
-
-	// Unbinds texture
-	glBindTexture(GL_TEXTURE_CUBE_MAP, 0);
-
-	return textureID;
-}
-
 // Skybox is source of directional light
 void Skybox::sendLight(GLuint shaderProgram) {
 	// Change directional light settings here
@@ -177,13 +120,14 @@ void Skybox::draw(GLuint shaderProgram, glm::mat4 P, glm::mat4 V)
 	glUniformMatrix4fv(uModel, 1, GL_FALSE, &toWorld[0][0]);
 
 	// Now draw the cube. We simply need to bind the VAO associated with it.
-	glBindVertexArray(VAO);
 	glActiveTexture(GL_TEXTURE0);
+	glBindTexture(GL_TEXTURE_CUBE_MAP, texture_ID);
 	glUniform1i(glGetUniformLocation(shaderProgram, "myTextureSampler"), 0);
-	glBindTexture(GL_TEXTURE_CUBE_MAP, textureID);
+	glBindVertexArray(VAO);
 
 
 	// Tell OpenGL to draw with triangles, using 36 indices, the type of the indices, and the offset to start from
+	glBindBuffer(GL_ARRAY_BUFFER, uv_ID);
 	glDrawArrays(GL_TRIANGLES, 0, 12 * 3);
 
 	// Unbind the VAO when we're done so we don't accidentally draw extra stuff or tamper with its bound buffers
@@ -192,6 +136,70 @@ void Skybox::draw(GLuint shaderProgram, glm::mat4 P, glm::mat4 V)
 	glDepthMask(GL_TRUE);
 
 	glDepthFunc(GL_LESS);
+}
+
+// Load textures for skybox
+GLuint Skybox::loadCubemap() {
+
+	glGenTextures(1, &texture_ID);
+
+	int width, height;
+	unsigned char* image;
+
+	glBindTexture(GL_TEXTURE_CUBE_MAP, texture_ID);
+
+	// Make sure no bytes are padded:
+	glPixelStorei(GL_UNPACK_ALIGNMENT, 1);
+
+	// Select GL_MODULATE to mix texture with polygon color for shading:
+	glTexEnvf(GL_TEXTURE_ENV, GL_TEXTURE_ENV_MODE, GL_MODULATE);
+
+	// Load front
+	image = loadPPM("C:/Users/degu/Desktop/CSE190Project2/Minimal/left-ppm/pz.ppm", width, height);
+	glTexImage2D(GL_TEXTURE_CUBE_MAP_NEGATIVE_Z, 0, GL_RGB, width, height, 0, GL_RGB, GL_UNSIGNED_BYTE, image);
+	//glTexImage2D(GL_TEXTURE_CUBE_MAP_POSITIVE_Z, 0, GL_RGB, width, height, 0, GL_RGB, GL_UNSIGNED_BYTE, image);
+	free(image);
+
+	// Load back
+	image = loadPPM("C:/Users/degu/Desktop/CSE190Project2/Minimal/left-ppm/nz.ppm", width, height);
+	glTexImage2D(GL_TEXTURE_CUBE_MAP_POSITIVE_Z, 0, GL_RGB, width, height, 0, GL_RGB, GL_UNSIGNED_BYTE, image);
+	//glTexImage2D(GL_TEXTURE_CUBE_MAP_NEGATIVE_Z, 0, GL_RGB, width, height, 0, GL_RGB, GL_UNSIGNED_BYTE, image);
+	free(image);
+
+	// Load bottom
+	image = loadPPM("C:/Users/degu/Desktop/CSE190Project2/Minimal/left-ppm/ny.ppm", width, height);
+	glTexImage2D(GL_TEXTURE_CUBE_MAP_NEGATIVE_Y, 0, GL_RGB, width, height, 0, GL_RGB, GL_UNSIGNED_BYTE, image);
+	free(image);
+
+	// Load left
+	image = loadPPM("C:/Users/degu/Desktop/CSE190Project2/Minimal/left-ppm/nx.ppm", width, height);
+	glTexImage2D(GL_TEXTURE_CUBE_MAP_NEGATIVE_X, 0, GL_RGB, width, height, 0, GL_RGB, GL_UNSIGNED_BYTE, image);
+	//glTexImage2D(GL_TEXTURE_CUBE_MAP_POSITIVE_X, 0, GL_RGB, width, height, 0, GL_RGB, GL_UNSIGNED_BYTE, image);
+	free(image);
+
+	// Load right
+	image = loadPPM("C:/Users/degu/Desktop/CSE190Project2/Minimal/left-ppm/px.ppm", width, height);
+	glTexImage2D(GL_TEXTURE_CUBE_MAP_POSITIVE_X, 0, GL_RGB, width, height, 0, GL_RGB, GL_UNSIGNED_BYTE, image);
+	//glTexImage2D(GL_TEXTURE_CUBE_MAP_NEGATIVE_X, 0, GL_RGB, width, height, 0, GL_RGB, GL_UNSIGNED_BYTE, image);
+	free(image);
+
+	// Load top
+	image = loadPPM("C:/Users/degu/Desktop/CSE190Project2/Minimal/left-ppm/py.ppm", width, height);
+	glTexImage2D(GL_TEXTURE_CUBE_MAP_POSITIVE_Y, 0, GL_RGB, width, height, 0, GL_RGB, GL_UNSIGNED_BYTE, image);
+	free(image);
+
+	// Sets texture parameters
+	glGenerateMipmap(GL_TEXTURE_CUBE_MAP);
+	glTexParameteri(GL_TEXTURE_CUBE_MAP, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+	glTexParameteri(GL_TEXTURE_CUBE_MAP, GL_TEXTURE_MIN_FILTER, GL_LINEAR_MIPMAP_LINEAR);
+	glTexParameteri(GL_TEXTURE_CUBE_MAP, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
+	glTexParameteri(GL_TEXTURE_CUBE_MAP, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
+	glTexParameteri(GL_TEXTURE_CUBE_MAP, GL_TEXTURE_WRAP_R, GL_CLAMP_TO_EDGE);
+
+	// Unbinds texture
+	glBindTexture(GL_TEXTURE_CUBE_MAP, 0);
+
+	return texture_ID;
 }
 
 #pragma warning(disable : 4996)  
