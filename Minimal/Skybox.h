@@ -34,12 +34,13 @@ public:
 	unsigned char* loadPPM(const char*, int&, int&);
 
 	// Cubemap
-	GLuint loadCubemap();
+	void loadCubemap();
+	void useCubemap(int eyeIdx);
 	glm::vec3 direction = glm::vec3(-0.0459845f, 0.0925645f, 0.994644f);
 
 	// These variables are needed for the shader program
 	GLuint VBO, VAO, uv_ID;
-	GLuint uProjection, uModel, uView, texture_ID;
+	GLuint uProjection, uModel, uView, texture_ID_left, texture_ID_right, curTextureID;
 
 	/*
 	GLfloat vertices[8][3] = {

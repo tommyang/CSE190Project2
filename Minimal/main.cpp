@@ -553,6 +553,7 @@ protected:
 		glFramebufferTexture2D(GL_DRAW_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D, curTexId, 0);
 		glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 		ovr::for_each_eye([&](ovrEyeType eye) {
+			currentEye(eye);
 			const auto& vp = _sceneLayer.Viewport[eye];
 			glViewport(vp.Pos.x, vp.Pos.y, vp.Size.w, vp.Size.h);
 			_sceneLayer.RenderPose[eye] = eyePoses[eye];
@@ -573,6 +574,7 @@ protected:
 	}
 
 	virtual void renderScene(const glm::mat4 & projection, const glm::mat4 & headPose) = 0;
+	virtual void currentEye(ovrEyeType eye) = 0;
 };
 
 //////////////////////////////////////////////////////////////////////
@@ -601,6 +603,7 @@ struct SimScene {
 public:
 	static glm::mat4 P; // P for projection
 	static glm::mat4 V; // V for view
+	int curEyeIdx;
 
 	SimScene() {
 		cubeShaderProgram = LoadShaders(CUBE_VERTEX_SHADER_PATH, CUBE_FRAGMENT_SHADER_PATH);
@@ -618,10 +621,15 @@ public:
 
 	void render(const mat4 & projection, const mat4 & modelview) {
 		// Use the shader of programID
-		//glUseProgram(cubeShaderProgram);
-		//cube->draw(cubeShaderProgram, projection, modelview);
 		glUseProgram(skyboxShaderProgram);
 		skybox->draw(skyboxShaderProgram, projection, modelview);
+		glUseProgram(cubeShaderProgram);
+		cube->draw(cubeShaderProgram, projection, modelview);
+	}
+
+	void currentEye(int eyeIdx) {
+		curEyeIdx = eyeIdx;
+		skybox->useCubemap(curEyeIdx);
 	}
 
 private:
@@ -661,6 +669,15 @@ protected:
 
 	void renderScene(const glm::mat4 & projection, const glm::mat4 & headPose) override {
 		simScene->render(projection, glm::inverse(headPose));
+	}
+
+	void currentEye(ovrEyeType eye) {
+		if (eye == ovrEye_Left) {
+			simScene->currentEye(0);
+		}
+		else {
+			simScene->currentEye(1);
+		}
 	}
 };
 
